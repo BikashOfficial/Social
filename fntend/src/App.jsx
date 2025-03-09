@@ -1,42 +1,40 @@
-import { Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Home from "./pages/Home";
-import SignUp from "./pages/SignUp";
-import Start from "./pages/Start";
-import User_profile from "./pages/User_profile";
-import Content_view from "./pages/Content_view";
-import Notification from "./pages/Notification";
-import Explore from "./pages/Explore";
-import Messages from "./pages/Messages";
-import ProtectedRoute from "./context/ProtectedRoute";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { UserDataProvider } from './context/UserContext';
+import ProtectedRoute from './context/ProtectedRoute';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Messages from './pages/Messages';
+import Upload from './pages/Upload';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Content_view from './pages/Content_view';
+import User_profile from './pages/User_profile';
+import Notification from './pages/Notification';
 import NotFound from "./components/NotFound";
-import Upload from "./pages/Upload";
-// import ProtectedRoute from "./components/ProtectedRoute";
 
-const App = () => {
+function App() {
   return (
-    <div>
-      <Routes>
-        <Route path="/start" element={<Start />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<SignUp />} />
-        <Route path="*" element={<NotFound />} />
-
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
+    <Router>
+      <UserDataProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<User_profile />} />
-          <Route path="/content/:postId" element={<Content_view />} />
-          <Route path="/notifications" element={<Notification />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/upload" element={<Upload />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/upload" element={<Upload />} />
+            <Route path="/post/:postId" element={<Content_view />} />
+            <Route path="/user/:userId" element={<User_profile />} />
+            <Route path="/notifications" element={<Notification />} />
+          </Route>
+
           <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </div>
+        </Routes>
+      </UserDataProvider>
+    </Router>
   );
-};
+}
 
 export default App;

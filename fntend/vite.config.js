@@ -12,5 +12,8 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: true,
+  },
+  server: {
+    historyApiFallback: true,
   }
 })
