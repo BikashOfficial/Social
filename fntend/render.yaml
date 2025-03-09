@@ -1,8 +1,11 @@
 services:
   - type: web
-    name: your-app-name
+    name: socialapp-frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
     routes:
       - type: rewrite
         source: /*
