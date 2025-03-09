@@ -25,7 +25,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",  // Local development
-      "https://your-frontend-domain.onrender.com" // Add your frontend domain
+      "https://socialapp-c4ef.onrender.com" // Add your frontend domain
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
