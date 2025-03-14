@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { UserDataContext } from '../../context/UserContext';
 import axios from 'axios';
 import P_edit from './P_edit';
+import styles from '../../pages/UserProfile.module.css';
 
 const P_header = () => {
     const { user } = useContext(UserDataContext);
@@ -43,34 +44,34 @@ const P_header = () => {
     };
 
     return (
-        <div className="profile-header mt-18">
-            <div className="profile-avatar-section">
+        <div className={styles.profileHeader}>
+            <div className={styles.profileAvatarSection}>
                 <img 
                     src={`${import.meta.env.VITE_BASE_URL}/uploads/profiles/${user.profilePhoto}`}
                     alt="Profile" 
-                    className="profile-avatar"
+                    className={styles.profileAvatar}
                     onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
                     }}
                 />
-                <div className="profile-stats">
-                    <div className="stat-item">
-                        <span className="stat-number">{stats.posts}</span>
-                        <span className="stat-label">Posts</span>
+                <div className={styles.profileStats}>
+                    <div className={styles.statItem}>
+                        <span className={styles.statNumber}>{stats.posts}</span>
+                        <span className={styles.statLabel}>Posts</span>
                     </div>
-                    <div className="stat-item">
-                        <span className="stat-number">{stats.friends}</span>
-                        <span className="stat-label">Friends</span>
+                    <div className={styles.statItem}>
+                        <span className={styles.statNumber}>{stats.friends}</span>
+                        <span className={styles.statLabel}>Friends</span>
                     </div>
                 </div>
             </div>
-            <div className="profile-info">
+            <div className={styles.profileInfo}>
                 <h2 className='font-bold text-2xl'>{user.name}</h2>
-                <p className="username">@{user.username}</p>
-                <p className="min-w-70 bio max-w-100">{user.bio}</p>
+                <p className={styles.username}>@{user.username}</p>
+                <p className={`${styles.bio} min-w-70 max-w-100`}>{user.bio}</p>
                 <button
-                    className="edit-profile-btn"
+                    className={styles.editProfileBtn}
                     onClick={() => setIsOpen(true)}
                 >
                     Edit Profile

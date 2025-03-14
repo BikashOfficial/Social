@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import styles from '../../pages/UserProfile.module.css'
 
 const P_grid = ({ posts }) => {
     if (!posts || posts.length === 0) {
@@ -12,14 +13,14 @@ const P_grid = ({ posts }) => {
 
     return (
         <div>
-            <div className="profile-grid grid grid-cols-3 gap-1 md:gap-4 mt-4">
+            <div className={styles.profileGrid}>
                 {posts.map((post) => (
-                    <div key={post._id} className="grid-item aspect-square overflow-hidden">
+                    <div key={post._id} className={styles.gridItem}>
                         <Link to={`/content/${post._id}`} className="block w-full h-full">
                             <img 
                                 src={`${import.meta.env.VITE_BASE_URL}/uploads/${post.image}`} 
                                 alt={post.title}
-                                className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                                className={styles.gridItemImg}
                                 onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
