@@ -150,6 +150,33 @@ module.exports.getProfile = async (req, res) => {
   res.status(200).json(req.user);
 };
 
+module.exports.getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await userModel.findById(userId)
+      .select('name username bio profilePhoto');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+    
+    res.json({
+      success: true,
+      user
+    });
+  } catch (err) {
+    console.error('Get user profile error:', err);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user profile"
+    });
+  }
+};
+
 module.exports.logoutUser = async (req, res) => {
   //   res.clearCookie("token");
 
@@ -268,7 +295,7 @@ module.exports.searchUsers = async (req, res) => {
             username: { $regex: username, $options: 'i' },
             _id: { $ne: req.user._id } // Exclude the current user
         })
-        .select('name username bio')
+        .select('name username bio profilePhoto')
         .limit(10);
 
         res.json({
@@ -288,25 +315,36 @@ module.exports.searchUsers = async (req, res) => {
 module.exports.sendFriendRequest = async (req, res) => {
     try {
         const { userId } = req.params;
-        
-        // Check if users are already friends
-        const existingFriendship = await userModel.findOne({
-            _id: req.user._id,
-            friends: userId
-        });
+        const senderId = req.user._id;
 
-        if (existingFriendship) {
+        // Check if users are same
+        if (userId === senderId.toString()) {
             return res.status(400).json({
                 success: false,
-                message: "Already friends with this user"
+                message: "You cannot send friend request to yourself"
+            });
+        }
+
+        const receiver = await userModel.findById(userId);
+        if (!receiver) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Check if they are already friends
+        if (receiver.friends.includes(senderId)) {
+            return res.status(400).json({
+                success: false,
+                message: "You are already friends"
             });
         }
 
         // Check if request already exists
-        const existingRequest = await userModel.findOne({
-            _id: userId,
-            'friendRequests.from': req.user._id
-        });
+        const existingRequest = receiver.friendRequests.find(
+            request => request.from.toString() === senderId.toString()
+        );
 
         if (existingRequest) {
             return res.status(400).json({
@@ -316,21 +354,20 @@ module.exports.sendFriendRequest = async (req, res) => {
         }
 
         // Add friend request
-        await userModel.findByIdAndUpdate(userId, {
-            $push: {
-                friendRequests: {
-                    from: req.user._id,
-                    status: 'pending'
-                }
-            }
+        receiver.friendRequests.push({
+            from: senderId,
+            status: 'pending'
         });
+
+        await receiver.save();
 
         res.json({
             success: true,
             message: "Friend request sent successfully"
         });
+
     } catch (err) {
-        console.error('Friend request error:', err);
+        console.error('Send friend request error:', err);
         res.status(500).json({
             success: false,
             message: "Error sending friend request"
@@ -342,43 +379,49 @@ module.exports.sendFriendRequest = async (req, res) => {
 module.exports.acceptFriendRequest = async (req, res) => {
     try {
         const { requestId } = req.params;
+        const userId = req.user._id;
 
-        const user = await userModel.findOne({
-            _id: req.user._id,
-            'friendRequests._id': requestId
-        });
-
+        const user = await userModel.findById(userId);
         if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Find the request
+        const request = user.friendRequests.id(requestId);
+        if (!request) {
             return res.status(404).json({
                 success: false,
                 message: "Friend request not found"
             });
         }
 
-        const request = user.friendRequests.id(requestId);
         if (request.status !== 'pending') {
             return res.status(400).json({
                 success: false,
-                message: "Request already processed"
+                message: "Friend request already processed"
             });
         }
 
-        // Update request status
+        // Add each other as friends
+        user.friends.push(request.from);
         request.status = 'accepted';
-        await user.save();
 
-        // Add users as friends
-        await userModel.findByIdAndUpdate(req.user._id, {
-            $push: { friends: request.from }
-        });
-        await userModel.findByIdAndUpdate(request.from, {
-            $push: { friends: req.user._id }
-        });
+        const sender = await userModel.findById(request.from);
+        if (sender) {
+            sender.friends.push(userId);
+            await sender.save();
+        }
+
+        await user.save();
 
         res.json({
             success: true,
             message: "Friend request accepted"
         });
+
     } catch (err) {
         console.error('Accept friend request error:', err);
         res.status(500).json({
@@ -418,12 +461,17 @@ module.exports.removeFriend = async (req, res) => {
 module.exports.getFriendRequests = async (req, res) => {
     try {
         const user = await userModel.findById(req.user._id)
-            .populate('friendRequests.from', 'name username');
+            .populate('friendRequests.from', 'username name profilePhoto');
+
+        const pendingRequests = user.friendRequests.filter(
+            request => request.status === 'pending'
+        );
 
         res.json({
             success: true,
-            requests: user.friendRequests.filter(r => r.status === 'pending')
+            requests: pendingRequests
         });
+
     } catch (err) {
         console.error('Get friend requests error:', err);
         res.status(500).json({
@@ -437,7 +485,7 @@ module.exports.getFriendRequests = async (req, res) => {
 module.exports.getFriends = async (req, res) => {
     try {
         const user = await userModel.findById(req.user._id)
-            .populate('friends', 'name username bio');
+            .populate('friends', 'name username bio profilePhoto');
 
         res.json({
             success: true,

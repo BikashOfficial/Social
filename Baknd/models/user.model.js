@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
         minlength: 3,
         maxlength: 20
     },
-    password: {
+    password: { 
         type: String,
         required: true,
         select: false
@@ -41,6 +41,14 @@ const userSchema = new mongoose.Schema({
     profilePhoto: {
         type: String,
         default: 'default-avatar.png' // Default avatar image
+    },
+    isOnline: {
+        type: Boolean,
+        default: false
+    },
+    lastSeen: {
+        type: Date,
+        default: Date.now
     },
     posts: [{
         type: mongoose.Schema.Types.ObjectId,

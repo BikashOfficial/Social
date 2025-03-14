@@ -17,7 +17,7 @@ const commentSchema = new mongoose.Schema({
     }
 });
 
-const postSchema = new mongoose.Schema({
+const postSchema = new mongoose.Schema({ 
     title: {
         type: String,
         required: true,

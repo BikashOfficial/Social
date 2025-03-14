@@ -10,6 +10,7 @@ router.post('/create', userController.registerUser)
 router.post('/login', userController.loginUser)
 
 router.get('/profile', authUser.authMiddleware, userController.getProfile)
+router.get('/profile/:userId', authUser.authMiddleware, userController.getUserProfile)
 
 router.get('/logout', authUser.authMiddleware, userController.logoutUser)
 
