@@ -158,7 +158,8 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",  // Local development
+      "http://localhost:5173", 
+      "https://phrln8jh-5173.inc1.devtunnels.ms/", // Local development
       "https://socialapp-c4ef.onrender.com", // Add your frontend domain
       "https://social-bice-xi.vercel.app"
     ],
