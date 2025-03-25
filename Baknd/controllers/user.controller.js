@@ -212,69 +212,71 @@ module.exports.checkUsername = async (req, res) => {
 
 module.exports.updateProfile = async (req, res) => {
   try {
-      const { name, bio, username } = req.body;
-      const userId = req.user._id;
+    console.log('Update profile request received', {
+      body: req.body,
+      file: req.file ? {
+        filename: req.file.filename,
+        path: req.file.path,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      } : 'No file uploaded'
+    });
 
-      // Validate input
-      if (!name && !bio && !username) {
-          return res.status(400).json({ error: "No updates provided" });
+    const userId = req.user._id;
+    const updatedData = { ...req.body };
+    
+    // Handle profile photo if it was uploaded
+    if (req.file) {
+      console.log(`Profile photo uploaded: ${req.file.filename}`);
+      updatedData.profilePhoto = req.file.filename;
+    }
+    
+    // Remove any empty fields
+    Object.keys(updatedData).forEach(key => {
+      if (updatedData[key] === '' || updatedData[key] === undefined) {
+        delete updatedData[key];
       }
+    });
+    
+    console.log('Final update data:', updatedData);
 
-      const updates = {};
-      if (name) updates.name = name;
-      if (bio !== undefined) updates.bio = bio;
-      if (username) {
-          // Check if username is already taken
-          const existingUser = await userModel.findOne({ 
-              username, 
-              _id: { $ne: userId } 
-          });
-          if (existingUser) {
-              return res.status(400).json({ error: "Username already taken" });
-          }
-          updates.username = username;
-      }
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId, 
+      updatedData,
+      { new: true, runValidators: true }
+    );
 
-      // Handle profile photo update
-      if (req.file) {
-          // Get the old profile photo path
-          const user = await userModel.findById(userId);
-          if (user.profilePhoto && user.profilePhoto !== 'default-avatar.png') {
-              // Delete the old profile photo
-              const oldPhotoPath = path.join(__dirname, '../uploads/profiles', user.profilePhoto);
-              try {
-                  await fs.unlink(oldPhotoPath);
-              } catch (err) {
-                  console.error('Error deleting old profile photo:', err);
-              }
-          }
-          updates.profilePhoto = req.file.filename;
-      }
-
-      const updatedUser = await userModel.findByIdAndUpdate(
-          userId,
-          { $set: updates },
-          { 
-              new: true,
-              runValidators: true,
-              select: '-password'
-          }
-      );
-
-      if (!updatedUser) {
-          return res.status(404).json({ error: "User not found" });
-      }
-
-      res.status(200).json({
-          message: "Profile updated successfully",
-          user: updatedUser
+    if (!updatedUser) {
+      console.log('User not found for update');
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
       });
+    }
 
-  } catch (error) {
-      console.error("Update error:", error);
-      res.status(500).json({ 
-          error: "An error occurred while updating profile"
-      });
+    // Get the full URL of the profile photo for the client
+    let profilePhotoUrl = null;
+    if (updatedUser.profilePhoto) {
+      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+      profilePhotoUrl = `${baseUrl}/uploads/profiles/${updatedUser.profilePhoto}`;
+      console.log('Profile photo URL generated:', profilePhotoUrl);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        ...updatedUser._doc,
+        profilePhotoUrl
+      }
+    });
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: err.message
+    });
   }
 };
 

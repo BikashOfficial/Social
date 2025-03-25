@@ -1,12 +1,21 @@
 /**
  * Utility functions for handling image URLs
  */
+import { debugImageUrl } from './debug';
 
 // Default fallback image for when profile images fail to load
 const DEFAULT_PROFILE_IMAGE = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
 
 // Default fallback image for when post images fail to load
 const DEFAULT_POST_IMAGE = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
+
+// Log environment variables for debugging
+console.log("ENV CHECK - VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
+
+// IMPORTANT FIX: Using hardcoded value if environment variable is not available
+// This ensures images will load even if env variables are not properly loaded
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
+console.log("USING BASE_URL:", BASE_URL);
 
 /**
  * Get formatted URL for a profile photo with fallback handling
@@ -15,19 +24,32 @@ const DEFAULT_POST_IMAGE = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&for
  */
 export const getProfilePhotoUrl = (user) => {
     // If no user provided, return default image
-    if (!user) return DEFAULT_PROFILE_IMAGE;
+    if (!user) {
+        console.log("getProfilePhotoUrl: No user provided, returning default");
+        return DEFAULT_PROFILE_IMAGE;
+    }
     
     // Handle when user is a string (direct profilePhoto value)
     const profilePhoto = typeof user === 'string' ? user : user.profilePhoto;
     
-    if (!profilePhoto) return DEFAULT_PROFILE_IMAGE;
+    if (!profilePhoto) {
+        console.log("getProfilePhotoUrl: No profilePhoto found for user", typeof user === 'object' ? user.username : user);
+        return DEFAULT_PROFILE_IMAGE;
+    }
     
     // Make sure we don't duplicate the base URL if it's already included
     if (profilePhoto.startsWith('http')) {
         return profilePhoto;
     }
     
-    return `${import.meta.env.VITE_BASE_URL}/uploads/profiles/${profilePhoto}`;
+    // Simple direct URL construction for better reliability
+    const fullUrl = `${BASE_URL}/uploads/profiles/${profilePhoto}`;
+    
+    // Use debug function to track image URL
+    return debugImageUrl('getProfilePhotoUrl', fullUrl, { 
+        user: typeof user === 'object' ? user.username : 'string-input', 
+        profilePhoto 
+    });
 };
 
 /**
@@ -36,14 +58,21 @@ export const getProfilePhotoUrl = (user) => {
  * @returns {string} - The complete URL for the post image
  */
 export const getPostImageUrl = (imagePath) => {
-    if (!imagePath) return DEFAULT_POST_IMAGE;
+    if (!imagePath) {
+        console.log("getPostImageUrl: No image path provided, returning default");
+        return DEFAULT_POST_IMAGE;
+    }
     
     // Make sure we don't duplicate the base URL if it's already included
     if (imagePath.startsWith('http')) {
         return imagePath;
     }
     
-    return `${import.meta.env.VITE_BASE_URL}/uploads/${imagePath}`;
+    // Simple direct URL construction for better reliability
+    const fullUrl = `${BASE_URL}/uploads/${imagePath}`;
+    
+    // Use debug function to track image URL
+    return debugImageUrl('getPostImageUrl', fullUrl, { imagePath });
 };
 
 /**
@@ -52,6 +81,7 @@ export const getPostImageUrl = (imagePath) => {
  * @param {string} fallbackImage - Optional custom fallback image URL
  */
 export const handleImageError = (event, fallbackImage = DEFAULT_PROFILE_IMAGE) => {
+    console.log("Image load error for:", event.target.src);
     event.target.onerror = null; // Prevent infinite error loop
     event.target.src = fallbackImage;
 };
@@ -63,8 +93,11 @@ export const handleImageError = (event, fallbackImage = DEFAULT_PROFILE_IMAGE) =
  */
 export const checkBackendAvailability = async () => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/`);
-        return response.ok;
+        console.log(`Checking backend availability at: ${BASE_URL}`);
+        const response = await fetch(`${BASE_URL}/`);
+        const isAvailable = response.ok;
+        console.log(`Backend availability check: ${isAvailable ? 'SUCCESS' : 'FAILED'}`);
+        return isAvailable;
     } catch (error) {
         console.error('Backend availability check failed:', error);
         return false;

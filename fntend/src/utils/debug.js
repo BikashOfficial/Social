@@ -73,4 +73,29 @@ export const dumpAuthDebugInfo = () => {
   logAuth('API URL:', import.meta.env.VITE_BASE_URL);
   logAuth('Environment:', import.meta.env.MODE);
   logAuth('========================');
+};
+
+// Add this function to debug image URLs
+
+/**
+ * Debug function specifically for image URL issues
+ * @param {string} context - Where the debug is being called from
+ * @param {string} url - The image URL being tested
+ * @param {Object} details - Additional details for debugging
+ */
+export const debugImageUrl = (context, url, details = {}) => {
+  console.group(`🖼️ Image Debug [${context}]`);
+  console.log('URL:', url);
+  console.log('Base URL:', import.meta.env.VITE_BASE_URL);
+  console.log('Details:', details);
+  
+  // Test if URL is accessible
+  const img = new Image();
+  img.onload = () => console.log('✅ Image loaded successfully');
+  img.onerror = () => console.error('❌ Image failed to load');
+  img.src = url;
+  
+  console.groupEnd();
+  
+  return url;
 }; 

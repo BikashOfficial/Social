@@ -30,12 +30,20 @@ const P_edit = ({ isOpen, setIsOpen }) => {
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
-                return;
-            }
-            setSelectedPhoto(file);
-            setPhotoPreview(URL.createObjectURL(file));
+            console.log("Selected profile photo:", file.name, file.type, file.size);
+            
+            // Create a direct URL for preview
+            const objectUrl = URL.createObjectURL(file);
+            console.log("Created preview URL:", objectUrl);
+            
+            // Set the preview URL state
+            setPhotoPreview(objectUrl);
+            
+            // Update the form data with the new file
+            setFormData(prev => ({
+                ...prev,
+                photoFile: file
+            }));
         }
     };
 

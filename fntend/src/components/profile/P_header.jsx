@@ -13,9 +13,17 @@ const P_header = () => {
         posts: 0,
         friends: 0
     });
+    const [imgSrc, setImgSrc] = useState(null);
 
     useEffect(() => {
         fetchUserStats();
+        
+        // Set image source with appropriate error handling
+        if (user && user.profilePhoto) {
+            const photoUrl = getProfilePhotoUrl(user);
+            console.log("Profile header loading image:", photoUrl);
+            setImgSrc(photoUrl);
+        }
     }, [user._id]);
 
     const fetchUserStats = async () => {
@@ -51,10 +59,13 @@ const P_header = () => {
         <div className={styles.profileHeader}>
             <div className={styles.profileAvatarSection}>
                 <img 
-                    src={getProfilePhotoUrl(user)}
+                    src={imgSrc || getProfilePhotoUrl(user)}
                     alt={user.username || "Profile"} 
                     className={styles.profileAvatar}
-                    onError={handleImageError}
+                    onError={(e) => {
+                        console.log("Profile image error occurred, applying fallback");
+                        handleImageError(e);
+                    }}
                 />
                 <div className={styles.profileStats}>
                     <div className={styles.statItem}>
