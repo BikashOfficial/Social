@@ -1,5 +1,5 @@
 import React from 'react';
-import { getProfilePhotoUrl } from '../../utils/profileUtils';
+import { getProfilePhotoUrl, handleImageError } from '../../utils/imageUtils';
 
 const ChatMessages = ({ messages, user, selectedFriend, isTyping, messagesEndRef }) => {
     // Debug log to check messages structure
@@ -32,37 +32,25 @@ const ChatMessages = ({ messages, user, selectedFriend, isTyping, messagesEndRef
                                         src={getProfilePhotoUrl(selectedFriend)}
                                         className="rounded-full w-8 h-8 mb-1"
                                         alt={selectedFriend?.username || "Friend"}
-                                        onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                                        }}
+                                        onError={handleImageError}
                                     />
                                 </div>
                             )}
-                            <div className="flex flex-col max-w-[75%] sm:max-w-[70%] md:max-w-[60%] min-w-0">
-                                <div 
-                                    className={`${
-                                        isCurrentUserSender 
-                                            ? 'bg-blue-500 text-white rounded-l-2xl rounded-br-2xl rounded-tr-none'
-                                            : 'bg-white border border-gray-100 rounded-r-2xl rounded-bl-2xl rounded-tl-none'
-                                    } py-2 px-4 shadow-sm break-words`}
-                                >
-                                    <div className="whitespace-pre-wrap break-words">
-                                        {message.text || message.content}
-                                    </div>
-                                    <div className={`text-xs mt-1 ${isCurrentUserSender ? 'text-blue-100' : 'text-gray-400'} flex items-center gap-1`}>
-                                        <span>
-                                            {new Date(message.createdAt).toLocaleTimeString([], { 
-                                                hour: '2-digit', 
-                                                minute: '2-digit' 
-                                            })}
-                                        </span>
-                                        {isCurrentUserSender && (
-                                            <span className={message.read ? 'text-blue-300' : 'text-blue-200'}>
-                                                {message.read ? '✓✓' : '✓'}
-                                            </span>
-                                        )}
-                                    </div>
+                            <div 
+                                className={`rounded-2xl py-2 px-4 max-w-[70%] shadow-sm ${
+                                    isCurrentUserSender 
+                                    ? 'bg-blue-500 text-white rounded-tr-none' 
+                                    : 'bg-white border border-gray-100 rounded-tl-none'
+                                }`}
+                            >
+                                {message.text}
+                                <div className={`text-xs mt-1 ${isCurrentUserSender ? 'text-blue-100' : 'text-gray-500'}`}>
+                                    {message.createdAt && (
+                                        new Date(message.createdAt).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })
+                                    )}
                                 </div>
                             </div>
                             {isCurrentUserSender && (
@@ -71,10 +59,7 @@ const ChatMessages = ({ messages, user, selectedFriend, isTyping, messagesEndRef
                                         src={getProfilePhotoUrl(user)}
                                         className="rounded-full w-8 h-8 mb-1"
                                         alt={user?.username || "You"}
-                                        onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                                        }}
+                                        onError={handleImageError}
                                     />
                                 </div>
                             )}
@@ -95,10 +80,7 @@ const ChatMessages = ({ messages, user, selectedFriend, isTyping, messagesEndRef
                                 src={getProfilePhotoUrl(selectedFriend)}
                                 className="rounded-full w-6 h-6"
                                 alt={selectedFriend?.username || "Friend"}
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                                }}
+                                onError={handleImageError}
                             />
                         </div>
                         <div className="flex gap-1">

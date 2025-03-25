@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { UserDataContext } from '../context/UserContext'
 import api from '../services/api'
+import { getProfilePhotoUrl, getPostImageUrl, handleImageError } from '../utils/imageUtils'
 
 const Posts = () => {
     const [posts, setPosts] = useState([]);
@@ -41,11 +42,15 @@ const Posts = () => {
         }
     };
 
-    const getImageUrl = (path) => {
-        return `${import.meta.env.VITE_BASE_URL}/uploads/${path}`;
-    };
-
     if (loading) return <div className="text-center py-4">Loading posts...</div>;
+
+    if (!posts || posts.length === 0) {
+        return (
+            <div className="p-4 text-center text-gray-500">
+                No posts found.
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -56,13 +61,10 @@ const Posts = () => {
                         <div className="p-3 flex items-center">
                             <div className="w-8 h-8 rounded-full overflow-hidden">
                                 <img 
-                                    src={`${import.meta.env.VITE_BASE_URL}/uploads/profiles/${post.user.profilePhoto}`}
-                                    alt="" 
+                                    src={getProfilePhotoUrl(post.user)}
+                                    alt={post.user.username || "User"} 
                                     className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                                    }}
+                                    onError={handleImageError}
                                 />
                             </div>
                             <span className="ml-3 font-semibold text-sm">{post.user.username}</span>
@@ -72,38 +74,38 @@ const Posts = () => {
                         <Link to={`/post/${post._id}`}>
                             <div className="aspect-square w-full relative">
                                 <img 
-                                    src={getImageUrl(post.image)}
-                                    alt="Post" 
+                                    src={getPostImageUrl(post.image)}
+                                    alt={post.title || "Post"} 
                                     className="absolute w-full h-full object-cover"
+                                    onError={(e) => handleImageError(e, "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000")}
                                 />
                             </div>
                         </Link>
 
-                        {/* Actions and Caption */}
+                        {/* Actions */}
                         <div className="p-3">
-                            <div className="flex items-center gap-4 mb-2">
-                                <button 
-                                    onClick={() => handleLike(post._id)}
-                                    className="text-2xl"
-                                >
-                                    {post.likes?.includes(user?._id) ? '❤️' : '🤍'}
-                                </button>
-                                <Link to={`/post/${post._id}`}>
-                                    <button className="text-2xl">💬</button>
-                                </Link>
+                            <div className="flex space-x-4">
+                                <button className="text-2xl">❤️</button>
+                                <button className="text-2xl">💬</button>
+                                <button className="text-2xl">📤</button>
                             </div>
-                            <div className="font-semibold mb-1">
-                                {post.likesCount || 0} likes • {post.commentsCount || 0} comments
+                            <div className="mt-2">
+                                <span className="font-semibold text-sm">{post.likes?.length || 0} likes</span>
                             </div>
-                            <div>
-                                <span className="font-semibold mr-2">{post.user.username}</span>
-                                {post.title}
+                            <div className="mt-1">
+                                <span className="font-semibold text-sm mr-2">{post.user.username}</span>
+                                <span className="text-sm">{post.title}</span>
                             </div>
-                            {post.location && (
-                                <div className="text-sm text-gray-500 mt-1">
-                                    📍 {post.location}
+                            {post.comments?.length > 0 && (
+                                <div className="mt-2">
+                                    <Link to={`/post/${post._id}`} className="text-gray-500 text-sm">
+                                        View all {post.comments.length} comments
+                                    </Link>
                                 </div>
                             )}
+                            <div className="mt-1 text-gray-400 text-xs">
+                                {new Date(post.createdAt).toLocaleDateString()}
+                            </div>
                         </div>
                     </article>
                 ))}

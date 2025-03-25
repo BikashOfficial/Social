@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import Sidebar from '../components/Sidebar'
 import Footer from '../components/Footer'
 import { logAuth } from '../utils/debug';
+import { getProfilePhotoUrl, handleImageError } from '../utils/imageUtils';
 
 const Explore = () => {
     const [username, setUsername] = useState('');
@@ -150,13 +151,10 @@ const Explore = () => {
                                 <div>
                                     <div className="flex items-center gap-3">
                                         <img
-                                            src={`${import.meta.env.VITE_BASE_URL}/uploads/profiles/${user.profilePhoto}`}
+                                            src={getProfilePhotoUrl(user)}
                                             className="w-12 h-12 rounded-full border border-gray-200"
-                                            alt={user.username}
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                                            }}
+                                            alt={user.username || "User"}
+                                            onError={handleImageError}
                                         />
                                         <div>
                                             <h3 className="font-bold text-lg">{user.name}</h3>

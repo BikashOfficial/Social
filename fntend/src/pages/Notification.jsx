@@ -3,6 +3,7 @@ import axios from 'axios';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Sidebar from '../components/Sidebar'
+import { getProfilePhotoUrl, handleImageError } from '../utils/imageUtils';
 
 const Notification = () => {
     const [friendRequests, setFriendRequests] = useState([]);
@@ -118,13 +119,10 @@ const Notification = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-4">
                                                 <img
-                                                    src={`${import.meta.env.VITE_BASE_URL}/uploads/profiles/${request.from.profilePhoto}`}
+                                                    src={getProfilePhotoUrl(request.from)}
                                                     className="w-12 h-12 rounded-full border-2 border-blue-500"
-                                                    alt={request.from.username}
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                                                    }}
+                                                    alt={request.from.username || "User"}
+                                                    onError={handleImageError}
                                                 />
                                                 <div>
                                                     <h4 className="font-semibold text-gray-800">{request.from.name}</h4>

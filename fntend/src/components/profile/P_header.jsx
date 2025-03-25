@@ -4,6 +4,7 @@ import api from '../../services/api';
 import P_edit from './P_edit';
 import styles from '../../pages/UserProfile.module.css';
 import { logAuth } from '../../utils/debug';
+import { getProfilePhotoUrl, handleImageError } from '../../utils/imageUtils';
 
 const P_header = () => {
     const { user } = useContext(UserDataContext);
@@ -50,13 +51,10 @@ const P_header = () => {
         <div className={styles.profileHeader}>
             <div className={styles.profileAvatarSection}>
                 <img 
-                    src={`${import.meta.env.VITE_BASE_URL}/uploads/profiles/${user.profilePhoto}`}
-                    alt="Profile" 
+                    src={getProfilePhotoUrl(user)}
+                    alt={user.username || "Profile"} 
                     className={styles.profileAvatar}
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000";
-                    }}
+                    onError={handleImageError}
                 />
                 <div className={styles.profileStats}>
                     <div className={styles.statItem}>

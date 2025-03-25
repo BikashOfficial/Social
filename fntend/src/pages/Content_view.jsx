@@ -6,6 +6,7 @@ import { logAuth } from '../utils/debug';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
+import { getPostImageUrl, getProfilePhotoUrl, handleImageError } from '../utils/imageUtils';
 
 const Content_view = () => {
     const { postId } = useParams();
@@ -200,6 +201,16 @@ const Content_view = () => {
         outline: 'none'
     };
 
+    const userInfoStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '10px'
+    };
+
+    const usernameStyle = {
+        fontWeight: 'bold'
+    };
+
     return (
         <>
             <div className='mb-16'>
@@ -209,13 +220,14 @@ const Content_view = () => {
             <div style={contentViewStyle} className='p-2'>
                 <div className="content-view-container">
                     <div style={headerStyle}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={userInfoStyle}>
                             <img 
-                                src="https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000" 
-                                alt="User avatar" 
-                                style={avatarStyle} 
+                                src={getProfilePhotoUrl(post.user)}
+                                alt={post.user?.username || "User"} 
+                                style={avatarStyle}
+                                onError={handleImageError}
                             />
-                            <span style={{ fontWeight: 'bold' }}>{post.user.username}</span>
+                            <span style={usernameStyle}>{post.user.username}</span>
                         </div>
                         {user._id === post.user._id && (
                             <div className="relative">
@@ -252,13 +264,10 @@ const Content_view = () => {
 
                     <div className="content-main">
                         <img 
-                            src={`${import.meta.env.VITE_BASE_URL}/uploads/${post.image}`}
-                            alt={post.title} 
+                            src={getPostImageUrl(post.image)}
+                            alt={post.title || "Post"} 
                             style={imageStyle}
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000';
-                            }}
+                            onError={handleImageError}
                         />
                     </div>
 
@@ -355,13 +364,10 @@ const Content_view = () => {
                     {comments.map(comment => (
                         <div key={comment._id} className="flex items-start gap-3 p-2">
                             <img
-                                src={`${import.meta.env.VITE_BASE_URL}/uploads/profiles/${comment.user.profilePhoto}`}
+                                src={getProfilePhotoUrl(comment.user)}
                                 alt={comment.user.username}
                                 className="w-8 h-8 rounded-full"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "https://via.placeholder.com/32";
-                                }}
+                                onError={handleImageError}
                             />
                             <div className="flex-1">
                                 <div className="flex items-center justify-between">

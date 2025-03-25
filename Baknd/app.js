@@ -207,14 +207,30 @@ app.use(express.urlencoded({ extended: true }));
 // Connect to database
 connectToDb();
 
-// Add this after other middleware
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static files from the uploads directory with proper CORS headers
+app.use('/uploads', (req, res, next) => {
+  // Set appropriate cache headers for images
+  res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours
+  
+  // Ensure CORS headers are set for static files
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
+// Create uploads directory if it doesn't exist
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Create profiles directory if it doesn't exist
 const profilesDir = path.join(__dirname, 'uploads/profiles');
 if (!fs.existsSync(profilesDir)) {
     fs.mkdirSync(profilesDir, { recursive: true });

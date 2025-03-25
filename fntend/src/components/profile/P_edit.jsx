@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 import { UserDataContext } from '../../context/UserContext';
 import api from '../../services/api';
 import { logAuth } from '../../utils/debug';
+import { getProfilePhotoUrl, handleImageError } from '../../utils/imageUtils';
 
 const P_edit = ({ isOpen, setIsOpen }) => {
 
@@ -96,9 +97,10 @@ const P_edit = ({ isOpen, setIsOpen }) => {
                             <div className="flex flex-col items-center mb-4">
                                 <div className="relative">
                                     <img
-                                        src={photoPreview || `${import.meta.env.VITE_BASE_URL}/uploads/profiles/${user.profilePhoto}`}
-                                        alt="Profile"
+                                        src={photoPreview || getProfilePhotoUrl(user)}
+                                        alt={user.username || "Profile"}
                                         className="w-24 h-24 rounded-full object-cover"
+                                        onError={handleImageError}
                                     />
                                     <label className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
                                         <input
