@@ -84,10 +84,12 @@ module.exports.registerUser = async (req, res) => {
     // Generate token
     const token = user.generateAuthToken();
 
-    // Set cookie
+    // Set cookie with proper flags for cross-domain
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "strict",
+      secure: isProduction, // Use secure in production
+      sameSite: isProduction ? 'none' : 'strict', // Allow cross-site cookies in production
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
@@ -130,12 +132,12 @@ module.exports.loginUser = async (req, res) => {
 
     const token = user.generateAuthToken();
 
-    // res.cookie('token', token);
-
+    // Set cookie with proper flags for cross-domain
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production', // Use secure in production
-      sameSite: "strict",
+      secure: isProduction, // Use secure in production
+      sameSite: isProduction ? 'none' : 'strict', // Allow cross-site cookies in production
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -178,15 +180,12 @@ module.exports.getUserProfile = async (req, res) => {
 };
 
 module.exports.logoutUser = async (req, res) => {
-  //   res.clearCookie("token");
-
-  //   res.status(200).json({ message: "Logged out successfully" });
-
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
     res.clearCookie("token", {
       httpOnly: true,
-      //   secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'strict',
     });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {

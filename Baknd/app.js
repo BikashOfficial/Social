@@ -155,22 +155,28 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+// Enhanced CORS configuration for cross-domain authentication
 app.use(
   cors({
     origin: [
       "http://localhost:5173", 
-    //   "https://phrln8jh-5173.inc1.devtunnels.ms/", // Local development
-    //   "https://socialapp-c4ef.onrender.com", // Add yo// ur frontend domain
       "https://social-bice-xi.vercel.app"
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
-    exposedHeaders: ["set-cookie"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "Accept", 
+      "Origin", 
+      "X-Requested-With"
+    ],
+    exposedHeaders: ["set-cookie"]
   })
 );
 
-
+// Parse cookies before the routes
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 connectToDb();

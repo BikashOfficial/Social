@@ -20,7 +20,9 @@ const UserContext = ({ children }) => {
 
     // Update localStorage whenever user changes
     useEffect(() => {
-        localStorage.setItem('user', JSON.stringify(user));
+        if (user && user.email) {
+            localStorage.setItem('user', JSON.stringify(user));
+        }
     }, [user]);
     
     // Set default auth header when token changes and check token validity
@@ -29,11 +31,23 @@ const UserContext = ({ children }) => {
         if (token) {
             logAuth('User context initialized with token');
             
+            // Skip checking token if we've already verified it recently
+            const lastVerified = sessionStorage.getItem('auth_verified_at');
+            const currentTime = new Date().getTime();
+            const verificationWindow = 30 * 60 * 1000; // 30 minutes in milliseconds
+            
+            if (lastVerified && (currentTime - parseInt(lastVerified)) < verificationWindow) {
+                logAuth('Token already verified recently, skipping check');
+                return;
+            }
+            
             // Optionally check token validity here
             const checkTokenValidity = async () => {
                 try {
                     await api.get('/user/profile');
                     logAuth('Token validated');
+                    // Mark as verified
+                    sessionStorage.setItem('auth_verified_at', currentTime.toString());
                 } catch (error) {
                     logAuth('Token validation failed', { error: error.response?.data });
                     // Don't logout automatically, let the ProtectedRoute handle that
@@ -63,6 +77,7 @@ const UserContext = ({ children }) => {
         setIsAuthenticated(false);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        sessionStorage.removeItem('auth_verified_at');
         
         // Log the auth state after logout
         setTimeout(() => {
@@ -77,6 +92,9 @@ const UserContext = ({ children }) => {
         setIsAuthenticated(true);
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', token);
+        
+        // Mark as verified now
+        sessionStorage.setItem('auth_verified_at', new Date().getTime().toString());
         
         // Log the auth state after login
         setTimeout(() => {

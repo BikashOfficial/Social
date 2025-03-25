@@ -16,6 +16,9 @@ import { UserDataContext } from "./UserContext";
 import { checkAuthentication, refreshAuthentication } from "../utils/auth";
 import { dumpAuthDebugInfo, logAuth } from "../utils/debug";
 
+// Set this to a reasonable time (in minutes) to avoid frequent re-verifications
+const VERIFICATION_WINDOW = 30; // minutes
+
 const ProtectedRoute = () => {
   const { user, logout } = useContext(UserDataContext);
   const navigate = useNavigate();
@@ -27,6 +30,19 @@ const ProtectedRoute = () => {
     
     const verifyAuth = async () => {
       setIsVerifying(true);
+      
+      // Check if recently verified to avoid unnecessary verification
+      const lastVerified = sessionStorage.getItem('auth_verified_at');
+      const currentTime = new Date().getTime();
+      
+      if (lastVerified) {
+        const elapsed = (currentTime - parseInt(lastVerified)) / (60 * 1000); // minutes
+        if (elapsed < VERIFICATION_WINDOW) {
+          logAuth(`Skipping verification - last verified ${elapsed.toFixed(1)} minutes ago`);
+          setIsVerifying(false);
+          return;
+        }
+      }
       
       try {
         // First, check authentication
@@ -40,15 +56,19 @@ const ProtectedRoute = () => {
           if (!isRefreshed) {
             logAuth('Authentication refresh failed, logging out');
             logout();
+            sessionStorage.removeItem('auth_verified_at');
             navigate('/start');
             return;
           }
         }
         
+        // Save successful verification timestamp
+        sessionStorage.setItem('auth_verified_at', currentTime.toString());
         logAuth('Authentication verified successfully');
       } catch (error) {
         logAuth('Authentication verification error', error);
         logout();
+        sessionStorage.removeItem('auth_verified_at');
         navigate('/start');
       } finally {
         setIsVerifying(false);
