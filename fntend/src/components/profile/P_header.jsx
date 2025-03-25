@@ -23,6 +23,17 @@ const P_header = () => {
             const photoUrl = getProfilePhotoUrl(user);
             console.log("Profile header loading image:", photoUrl);
             setImgSrc(photoUrl);
+            
+            // Create a test image to preload and check if the URL is valid
+            const testImg = new Image();
+            testImg.onload = () => console.log("Profile image loaded successfully:", photoUrl);
+            testImg.onerror = () => {
+                console.error("Failed to load profile image, trying fallback");
+                // Try a direct path if the normal path fails
+                const directUrl = `https://social-app-ybwk.onrender.com/uploads/profiles/${user.profilePhoto}`;
+                setImgSrc(directUrl);
+            };
+            testImg.src = photoUrl;
         }
     }, [user._id]);
 

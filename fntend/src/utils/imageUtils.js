@@ -12,9 +12,9 @@ const DEFAULT_POST_IMAGE = "https://img.icons8.com/?size=100&id=1cYVFPowIgtd&for
 // Log environment variables for debugging
 console.log("ENV CHECK - VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
 
-// IMPORTANT FIX: Using hardcoded value if environment variable is not available
-// This ensures images will load even if env variables are not properly loaded
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
+// IMPORTANT: Hardcode production URL to fix image loading
+// This ensures images will load from production server
+const BASE_URL = "https://social-app-ybwk.onrender.com";
 console.log("USING BASE_URL:", BASE_URL);
 
 /**
