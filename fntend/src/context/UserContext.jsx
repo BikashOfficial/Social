@@ -41,7 +41,7 @@ const UserContext = ({ children }) => {
                 return;
             }
             
-            // Optionally check token validity here
+            // Check token validity here
             const checkTokenValidity = async () => {
                 try {
                     await api.get('/user/profile');
@@ -51,12 +51,18 @@ const UserContext = ({ children }) => {
                 } catch (error) {
                     logAuth('Token validation failed', { error: error.response?.data });
                     // Don't logout automatically, let the ProtectedRoute handle that
+                    if (error.response && error.response.status === 401) {
+                        logAuth('Invalid token detected, will need reverification');
+                        sessionStorage.removeItem('auth_verified_at');
+                    }
                 }
             };
             
             checkTokenValidity();
         } else {
             logAuth('No token found on initialization');
+            sessionStorage.removeItem('auth_verified_at');
+            setIsAuthenticated(false);
         }
     }, []);
 
@@ -88,18 +94,31 @@ const UserContext = ({ children }) => {
     const login = (userData, token) => {
         logAuth('Logging in user', { userData, token: token ? `${token.substring(0, 15)}...` : null });
         
+        if (!userData || !token) {
+            logAuth('Login failed - missing user data or token');
+            return false;
+        }
+        
         setUser(userData);
         setIsAuthenticated(true);
+        
+        // Store data in both localStorage (persistent) and sessionStorage (current session)
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', token);
-        
-        // Mark as verified now
         sessionStorage.setItem('auth_verified_at', new Date().getTime().toString());
         
         // Log the auth state after login
         setTimeout(() => {
             dumpAuthDebugInfo();
         }, 100);
+        
+        return true;
+    };
+
+    // Helper method to update the verification status
+    const refreshVerificationStatus = () => {
+        sessionStorage.setItem('auth_verified_at', new Date().getTime().toString());
+        logAuth('Manually refreshed verification status');
     };
 
     return (
@@ -108,7 +127,8 @@ const UserContext = ({ children }) => {
             setUser, 
             logout, 
             login, 
-            isAuthenticated 
+            isAuthenticated,
+            refreshVerificationStatus
         }}>
             {children}
         </UserDataContext.Provider>

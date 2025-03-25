@@ -20,6 +20,12 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     const tokenInfo = getTokenInfo();
     
+    // Set origin header to help with CORS debugging
+    config.headers['Origin'] = window.location.origin;
+    
+    // Always include credentials
+    config.withCredentials = true;
+    
     // If token exists, add it to headers
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -32,7 +38,7 @@ api.interceptors.request.use(
       logAuth(`Request without token to ${config.url}`);
     }
 
-    // Create a unique request ID
+    // Create a unique request ID for tracking
     const requestId = `${config.method}:${config.url}:${Date.now()}`;
     if (!config.metadata) {
       config.metadata = { requestId, retryCount: 0 };
@@ -77,7 +83,7 @@ api.interceptors.response.use(
       });
       
       // Attempt to retry the request if we haven't tried too many times already
-      if (retryCount < 1 && config) {
+      if (retryCount < 2 && config) {
         // Increment retry count
         config.metadata = { ...config.metadata, retryCount: retryCount + 1 };
         
@@ -88,6 +94,13 @@ api.interceptors.response.use(
         const token = localStorage.getItem('token');
         if (token) {
           logAuth(`Retrying request to ${config.url} after 401 error`, { retryCount: retryCount + 1 });
+          
+          // Ensure token is in headers for retry
+          config.headers['Authorization'] = `Bearer ${token}`;
+          
+          // Force credentials on retry
+          config.withCredentials = true;
+          
           return api(config);
         }
       } else {
