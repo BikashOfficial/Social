@@ -53,10 +53,6 @@ const Login = () => {
     );
   }, []);
 
-  useEffect(() => {
-    console.log("Updated user:", user);
-  })
-
   const [error, setError] = useState("");
 
   const submitHandler = async (e) => {

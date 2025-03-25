@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { UserDataContext } from '../context/UserContext'
-import axios from 'axios'
+import api from '../services/api'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Sidebar from '../components/Sidebar'
@@ -18,10 +18,7 @@ const User_profile = () => {
     useEffect(() => {
         const fetchUserPosts = async () => {
             try {
-                const response = await axios.get(
-                    `${import.meta.env.VITE_BASE_URL}/post/getPosts`,
-                    { withCredentials: true }
-                );
+                const response = await api.get('/post/getPosts');
                 
                 if (response.data.success) {
                     // Filter posts to show only the current user's posts

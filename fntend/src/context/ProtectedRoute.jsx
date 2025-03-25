@@ -14,19 +14,23 @@ import React, { useContext, useEffect } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { UserDataContext } from "./UserContext";
 import api from "../services/api";
+import { dumpAuthDebugInfo, logAuth } from "../utils/debug";
 
 const ProtectedRoute = () => {
   const { user, logout } = useContext(UserDataContext);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Dump all auth information when the protected route is loaded
+    dumpAuthDebugInfo();
+    
     const checkAuth = async () => {
       try {
-        console.log('Checking auth with token:', localStorage.getItem('token'));
+        logAuth('Checking authentication status');
         await api.get('/user/profile');
-        console.log('Auth check successful');
+        logAuth('Authentication check successful');
       } catch (error) {
-        console.error('Auth check failed:', error.response?.data);
+        logAuth('Authentication check failed', error.response?.data);
         logout();
         navigate('/start');
       }
@@ -36,6 +40,7 @@ const ProtectedRoute = () => {
   }, [navigate, logout]);
 
   if (!user || !user.email) {
+    logAuth('User not authenticated', { user });
     return <Navigate to="/start" replace />;
   }
 

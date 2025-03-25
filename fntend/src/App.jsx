@@ -11,6 +11,7 @@ import Messages from "./pages/Messages";
 import ProtectedRoute from "./context/ProtectedRoute";
 import NotFound from "./components/NotFound";
 import Upload from "./pages/Upload";
+import DebugAuth from "./components/DebugAuth";
 // import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -34,6 +35,9 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
+      
+      {/* Debug Auth component */}
+      <DebugAuth />
     </div>
   );
 };

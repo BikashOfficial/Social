@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserDataContext } from '../context/UserContext'
-import axios from 'axios'
+import api from '../services/api'
 
 
 const Header = () => {
@@ -11,21 +11,17 @@ const Header = () => {
 
 
     const handleLogout = async () => {
-        // logout();
-        // const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/user/logout`);
-        // console.log(response.data);
-        // navigate('/start');
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/user/logout`,
-                { withCredentials: true }
-            );
+            const response = await api.get('/user/logout');
             if (response.status === 200) {
                 logout(); // This calls the context logout function
                 navigate('/start');
             }
         } catch (error) {
             console.error("Logout failed:", error);
+            // Still logout locally even if the API call fails
+            logout();
+            navigate('/start');
         }
     };
 

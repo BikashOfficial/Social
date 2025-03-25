@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { UserDataContext } from '../../context/UserContext';
-import axios from 'axios';
+import api from '../../services/api';
 import P_edit from './P_edit';
 import styles from '../../pages/UserProfile.module.css';
 
@@ -18,15 +18,9 @@ const P_header = () => {
 
     const fetchUserStats = async () => {
         try {
-            const postsResponse = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/post/getPosts`,
-                { withCredentials: true }
-            );
+            const postsResponse = await api.get('/post/getPosts');
             
-            const friendsResponse = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/user/friends`,
-                { withCredentials: true }
-            );
+            const friendsResponse = await api.get('/user/friends');
 
             if (postsResponse.data.success && friendsResponse.data.success) {
                 const userPosts = postsResponse.data.posts.filter(

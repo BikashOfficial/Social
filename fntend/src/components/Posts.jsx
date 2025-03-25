@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
-import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { UserDataContext } from '../context/UserContext'
+import api from '../services/api'
 
 const Posts = () => {
     const [posts, setPosts] = useState([]);
@@ -14,10 +14,8 @@ const Posts = () => {
 
     const fetchPosts = async () => {
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/post/getPosts`,
-                { withCredentials: true }
-            );
+            console.log('Fetching posts with token:', localStorage.getItem('token'));
+            const response = await api.get('/post/getPosts');
             if (response.data.success) {
                 setPosts(response.data.posts);
             }
@@ -30,11 +28,7 @@ const Posts = () => {
 
     const handleLike = async (postId) => {
         try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_BASE_URL}/post/${postId}/like`,
-                {},
-                { withCredentials: true }
-            );
+            const response = await api.post(`/post/${postId}/like`, {});
             if (response.data.success) {
                 setPosts(posts.map(post => 
                     post._id === postId 
