@@ -13,7 +13,7 @@
 import React, { useContext, useEffect } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { UserDataContext } from "./UserContext";
-import axios from "axios";
+import api from "../services/api";
 
 const ProtectedRoute = () => {
   const { user, logout } = useContext(UserDataContext);
@@ -22,17 +22,13 @@ const ProtectedRoute = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await axios.get(`${import.meta.env.VITE_BASE_URL}/user/profile`, {
-          withCredentials: true,
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        console.log('Checking auth with token:', localStorage.getItem('token'));
+        await api.get('/user/profile');
+        console.log('Auth check successful');
       } catch (error) {
-        if (error.response?.data?.redirect) {
-          logout();
-          navigate('/start');
-        }
+        console.error('Auth check failed:', error.response?.data);
+        logout();
+        navigate('/start');
       }
     };
 

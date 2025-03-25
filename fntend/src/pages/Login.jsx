@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import gsap from "gsap";
-import axios from "axios";
+import api from "../services/api";
 import { UserDataContext } from "../context/UserContext";
 
 const Login = () => {
@@ -9,7 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
-  const { user, setUser } = useContext(UserDataContext);
+  const { login } = useContext(UserDataContext);
 
   useEffect(() => {
     // Animations
@@ -57,44 +57,7 @@ const Login = () => {
     console.log("Updated user:", user);
   })
 
-
-
-  // const submitHandlerr = async (e) => {
-  //   e.preventDefault();
-  //   const userData = {
-  //     email,
-  //     password,
-  //   };
-
-  //   const response = await axios.post(
-  //     `${import.meta.env.VITE_BASE_URL}/user/login`,
-  //     userData,
-  //     {
-  //       withCredentials: true // This is important
-  //     }
-  //   );
-
-  //   if (response.status === 200) {
-  //     const data = response.data;
-  //     // setUser(data.user);
-  //     // // console.log(data.user);
-  //     // localStorage.setItem("token", data.token);
-  //     // navigate("/");
-
-  //     setUser(data.user);
-  //     localStorage.setItem('token', data.token);
-  //     localStorage.setItem('user', JSON.stringify(data.user)); // Store user data
-  //     navigate("/");
-  //   } else {
-  //     alert("Invalid email or password");
-  //   }
-
-  //   // console.log("User logged in:", user);
-  //   setEmail("");
-  //   setPassword("");
-  // };
-
-  const [error, setError] = useState(""); // Add this state at the top with other states
+  const [error, setError] = useState("");
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -105,22 +68,17 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/user/login`,
-        userData,
-        {
-          withCredentials: true
-        }
-      );
-
+      const response = await api.post('/user/login', userData);
+      
+      console.log('Login success:', response.data);
+      
       if (response.status === 200) {
         const data = response.data;
-        setUser(data.user);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        login(data.user, data.token);
         navigate("/");
       }
     } catch (error) {
+      console.error('Login error:', error.response?.data);
       setError(error.response?.data?.message || "Invalid email or password");
     }
 
