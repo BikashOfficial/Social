@@ -9,6 +9,8 @@ import { socketService } from '../services/socketService';
 import ChatArea from '../components/ChatArea';
 import ConversationsList from '../components/chat/ConversationsList';
 import { ensureProfilePhotos } from '../utils/profileUtils';
+import api from '../services/api';
+import { logAuth } from '../utils/debug';
 
 const Messages = () => {
     const { user } = useContext(UserDataContext);
@@ -192,12 +194,11 @@ const Messages = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/user/friends`,
-                { withCredentials: true }
-            );
+            logAuth('Fetching friends for messages');
+            const response = await api.get('/user/friends');
+            
             if (response.data.success) {
-                console.log('Fetched friends:', response.data.friends);
+                logAuth('Successfully fetched friends for messages', { count: response.data.friends.length });
                 // Use the utility function to ensure each friend has a profilePhoto property
                 const friendsWithPhotos = ensureProfilePhotos(response.data.friends);
                 setFriends(friendsWithPhotos);

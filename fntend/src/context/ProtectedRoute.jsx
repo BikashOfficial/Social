@@ -10,34 +10,65 @@
 
 // export default ProtectedRoute;
 
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { UserDataContext } from "./UserContext";
-import api from "../services/api";
+import { checkAuthentication, refreshAuthentication } from "../utils/auth";
 import { dumpAuthDebugInfo, logAuth } from "../utils/debug";
 
 const ProtectedRoute = () => {
   const { user, logout } = useContext(UserDataContext);
   const navigate = useNavigate();
+  const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
     // Dump all auth information when the protected route is loaded
     dumpAuthDebugInfo();
     
-    const checkAuth = async () => {
+    const verifyAuth = async () => {
+      setIsVerifying(true);
+      
       try {
-        logAuth('Checking authentication status');
-        await api.get('/user/profile');
-        logAuth('Authentication check successful');
+        // First, check authentication
+        const isAuth = await checkAuthentication();
+        
+        if (!isAuth) {
+          // If not authenticated, try one more time with refresh
+          logAuth('Initial authentication check failed, attempting refresh');
+          const isRefreshed = await refreshAuthentication();
+          
+          if (!isRefreshed) {
+            logAuth('Authentication refresh failed, logging out');
+            logout();
+            navigate('/start');
+            return;
+          }
+        }
+        
+        logAuth('Authentication verified successfully');
       } catch (error) {
-        logAuth('Authentication check failed', error.response?.data);
+        logAuth('Authentication verification error', error);
         logout();
         navigate('/start');
+      } finally {
+        setIsVerifying(false);
       }
     };
 
-    checkAuth();
+    verifyAuth();
   }, [navigate, logout]);
+
+  if (isVerifying) {
+    // Show loading while verifying authentication
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="spinner animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying login...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user || !user.email) {
     logAuth('User not authenticated', { user });

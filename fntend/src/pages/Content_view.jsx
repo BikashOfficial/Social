@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserDataContext } from '../context/UserContext';
-import axios from 'axios';
+import api from '../services/api';
+import { logAuth } from '../utils/debug';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
@@ -27,10 +28,9 @@ const Content_view = () => {
 
     const fetchPost = async () => {
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/post/getPost/${postId}`,
-                { withCredentials: true }
-            );
+            logAuth('Fetching post details', { postId });
+            const response = await api.get(`/post/getPost/${postId}`);
+            
             if (response.data.success) {
                 setPost(response.data.post);
                 setEditedCaption(response.data.post.title);
@@ -46,10 +46,9 @@ const Content_view = () => {
 
     const fetchComments = async () => {
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/post/${postId}/comments`,
-                { withCredentials: true }
-            );
+            logAuth('Fetching post comments', { postId });
+            const response = await api.get(`/post/${postId}/comments`);
+            
             if (response.data.success) {
                 setComments(response.data.comments);
             }
@@ -62,10 +61,9 @@ const Content_view = () => {
         if (!window.confirm('Are you sure you want to delete this post?')) return;
 
         try {
-            const response = await axios.delete(
-                `${import.meta.env.VITE_BASE_URL}/post/deletePost/${postId}`,
-                { withCredentials: true }
-            );
+            logAuth('Deleting post', { postId });
+            const response = await api.delete(`/post/deletePost/${postId}`);
+            
             if (response.data.success) {
                 alert('Post deleted successfully');
                 navigate('/profile');
@@ -78,14 +76,12 @@ const Content_view = () => {
 
     const handleUpdate = async () => {
         try {
-            const response = await axios.put(
-                `${import.meta.env.VITE_BASE_URL}/post/updatePost/${postId}`,
-                {
-                    title: editedCaption,
-                    location: editedLocation
-                },
-                { withCredentials: true }
-            );
+            logAuth('Updating post', { postId, title: editedCaption });
+            const response = await api.put(`/post/updatePost/${postId}`, {
+                title: editedCaption,
+                location: editedLocation
+            });
+            
             if (response.data.success) {
                 setPost(response.data.post);
                 setIsEditing(false);
@@ -102,11 +98,11 @@ const Content_view = () => {
         if (!comment.trim()) return;
 
         try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_BASE_URL}/post/${postId}/comment`,
-                { text: comment },
-                { withCredentials: true }
-            );
+            logAuth('Adding comment to post', { postId });
+            const response = await api.post(`/post/${postId}/comment`, { 
+                text: comment 
+            });
+            
             if (response.data.success) {
                 setComments([...comments, response.data.comment]);
                 setComment('');
@@ -120,10 +116,9 @@ const Content_view = () => {
         if (!window.confirm('Are you sure you want to delete this comment?')) return;
 
         try {
-            const response = await axios.delete(
-                `${import.meta.env.VITE_BASE_URL}/post/${postId}/comment/${commentId}`,
-                { withCredentials: true }
-            );
+            logAuth('Deleting comment', { postId, commentId });
+            const response = await api.delete(`/post/${postId}/comment/${commentId}`);
+            
             if (response.data.success) {
                 setComments(comments.filter(c => c._id !== commentId));
             }

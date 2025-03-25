@@ -3,6 +3,7 @@ import { UserDataContext } from '../../context/UserContext';
 import api from '../../services/api';
 import P_edit from './P_edit';
 import styles from '../../pages/UserProfile.module.css';
+import { logAuth } from '../../utils/debug';
 
 const P_header = () => {
     const { user } = useContext(UserDataContext);
@@ -18,8 +19,10 @@ const P_header = () => {
 
     const fetchUserStats = async () => {
         try {
+            logAuth('Fetching user stats - posts');
             const postsResponse = await api.get('/post/getPosts');
             
+            logAuth('Fetching user stats - friends');
             const friendsResponse = await api.get('/user/friends');
 
             if (postsResponse.data.success && friendsResponse.data.success) {
@@ -27,12 +30,18 @@ const P_header = () => {
                     post => post.user._id === user._id
                 );
 
+                logAuth('Successfully fetched user stats', { 
+                    postsCount: userPosts.length, 
+                    friendsCount: friendsResponse.data.friends.length 
+                });
+
                 setStats({
                     posts: userPosts.length,
                     friends: friendsResponse.data.friends.length
                 });
             }
         } catch (err) {
+            logAuth('Error fetching user stats', { error: err.message });
             console.error('Error fetching user stats:', err);
         }
     };

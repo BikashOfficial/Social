@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserDataContext } from '../../context/UserContext';
-import axios from 'axios';
+import api from '../../services/api';
+import { logAuth } from '../../utils/debug';
 import styles from '../../pages/UserProfile.module.css';
 
 const FriendsList = () => {
@@ -16,11 +17,11 @@ const FriendsList = () => {
 
     const fetchFriends = async () => {
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/user/friends`,
-                { withCredentials: true }
-            );
+            logAuth('Fetching friends list');
+            const response = await api.get('/user/friends');
+            
             if (response.data.success) {
+                logAuth('Successfully fetched friends', { count: response.data.friends.length });
                 setFriends(response.data.friends);
             }
         } catch (err) {
@@ -33,10 +34,9 @@ const FriendsList = () => {
 
     const removeFriend = async (friendId) => {
         try {
-            const response = await axios.delete(
-                `${import.meta.env.VITE_BASE_URL}/user/friend/${friendId}`,
-                { withCredentials: true }
-            );
+            logAuth('Removing friend', { friendId });
+            const response = await api.delete(`/user/friend/${friendId}`);
+            
             if (response.data.success) {
                 setFriends(friends.filter(f => f._id !== friendId));
                 // Show success message
