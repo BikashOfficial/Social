@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // Create Socket.IO instance
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: ["https://social-bice-xi.vercel.app", "http://localhost:5173"],
         methods: ['GET', 'POST'],
         credentials: true
     }

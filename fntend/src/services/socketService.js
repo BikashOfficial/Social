@@ -17,6 +17,10 @@ class SocketService {
             reconnection: true,
             reconnectionAttempts: this.maxReconnectAttempts,
             reconnectionDelay: 1000,
+            transports: ['polling', 'websocket'],
+            extraHeaders: {
+                'Origin': window.location.origin
+            }
         });
 
         // Set up connection handlers
