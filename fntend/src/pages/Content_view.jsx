@@ -262,7 +262,7 @@ const Content_view = () => {
                             style={imageStyle}
                             onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = 'https://via.placeholder.com/600?text=Image+Not+Found';
+                                e.target.src = 'https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000';
                             }}
                         />
                     </div>

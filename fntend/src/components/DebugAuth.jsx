@@ -9,6 +9,7 @@ const DebugAuth = () => {
   const [tokenInfo, setTokenInfo] = useState(getTokenInfo());
   const [isVisible, setIsVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [apiErrors, setApiErrors] = useState([]);
 
   // Update token info every 10 seconds
   useEffect(() => {
@@ -17,6 +18,32 @@ const DebugAuth = () => {
     }, 10000);
     
     return () => clearInterval(interval);
+  }, []);
+
+  // Track API errors from console
+  useEffect(() => {
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      // Check if this is an API error
+      if (args[0] && typeof args[0] === 'string' && 
+          (args[0].includes('API Error') || args[0].includes('Error from') || 
+           args[0].includes('Auth error'))) {
+        setApiErrors(prev => {
+          const newErrors = [...prev, {
+            message: args[0],
+            timestamp: new Date().toISOString(),
+            details: args[1] || {}
+          }];
+          // Keep only last 5 errors
+          return newErrors.slice(-5);
+        });
+      }
+      originalConsoleError.apply(console, args);
+    };
+    
+    return () => {
+      console.error = originalConsoleError;
+    };
   }, []);
 
   if (import.meta.env.PROD && !window.location.search.includes('debug=true')) {
@@ -92,6 +119,17 @@ const DebugAuth = () => {
                     <span className="font-bold mr-1">API URL:</span>
                     <span className="text-gray-400">{import.meta.env.VITE_BASE_URL}</span>
                   </div>
+                  
+                  {apiErrors.length > 0 && (
+                    <div className="mt-2 border-t border-gray-700 pt-2">
+                      <div className="font-bold mb-1">Recent API Errors:</div>
+                      {apiErrors.map((error, idx) => (
+                        <div key={idx} className="text-red-400 text-xs mb-1 overflow-hidden text-ellipsis">
+                          {error.message.substring(0, 40)}...
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </>

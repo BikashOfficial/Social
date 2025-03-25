@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { logAuth, dumpAuthDebugInfo } from '../utils/debug';
 
 export const UserDataContext = createContext();
 
@@ -22,28 +23,65 @@ const UserContext = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(user));
     }, [user]);
     
-    // Set default auth header when token changes
+    // Set default auth header when token changes and check token validity
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            console.log('Setting default auth header with token');
+            logAuth('User context initialized with token');
+            
+            // Optionally check token validity here
+            const checkTokenValidity = async () => {
+                try {
+                    await api.get('/user/profile');
+                    logAuth('Token validated');
+                } catch (error) {
+                    logAuth('Token validation failed', { error: error.response?.data });
+                    // Don't logout automatically, let the ProtectedRoute handle that
+                }
+            };
+            
+            checkTokenValidity();
+        } else {
+            logAuth('No token found on initialization');
         }
-    }, [isAuthenticated]);
+    }, []);
 
-    const logout = () => {
+    const logout = async () => {
+        logAuth('Logging out user', { userId: user._id });
+        
+        // Attempt to call logout API, but don't wait for it
+        try {
+            await api.get('/user/logout');
+            logAuth('Logout API call successful');
+        } catch (err) {
+            logAuth('Logout API call failed', err);
+            // Continue with local logout even if API call fails
+        }
+        
+        // Clear local state and storage
         setUser({ name: '', email: '' });
         setIsAuthenticated(false);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        // Optional: call logout API
-        api.get('/user/logout').catch(err => console.error('Logout error:', err));
+        
+        // Log the auth state after logout
+        setTimeout(() => {
+            dumpAuthDebugInfo();
+        }, 100);
     };
     
     const login = (userData, token) => {
+        logAuth('Logging in user', { userData, token: token ? `${token.substring(0, 15)}...` : null });
+        
         setUser(userData);
         setIsAuthenticated(true);
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', token);
+        
+        // Log the auth state after login
+        setTimeout(() => {
+            dumpAuthDebugInfo();
+        }, 100);
     };
 
     return (

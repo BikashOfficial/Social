@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import Header from '../components/Header'
 import Sidebar from '../components/Sidebar'
 import Footer from '../components/Footer'
+import { logAuth } from '../utils/debug';
 
 const Explore = () => {
     const [username, setUsername] = useState('');
@@ -26,10 +27,8 @@ const Explore = () => {
 
     const fetchSuggestions = async () => {
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/user/search?username=${username}`,
-                { withCredentials: true }
-            );
+            logAuth('Fetching user suggestions', { username });
+            const response = await api.get(`/user/search?username=${username}`);
 
             if (response.data.success) {
                 setSuggestions(response.data.users);
@@ -40,17 +39,18 @@ const Explore = () => {
     };
 
     const handleSearch = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) {
+            e.preventDefault();
+        }
+        
         if (!username.trim()) return;
 
         setLoading(true);
         setError(null);
 
         try {
-            const response = await axios.get(
-                `${import.meta.env.VITE_BASE_URL}/user/search?username=${username}`,
-                { withCredentials: true }
-            );
+            logAuth('Searching users', { username });
+            const response = await api.get(`/user/search?username=${username}`);
 
             if (response.data.success) {
                 setSearchResults(response.data.users);
@@ -69,11 +69,8 @@ const Explore = () => {
 
     const handleSendFriendRequest = async (userId) => {
         try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_BASE_URL}/user/friend-request/${userId}`,
-                {},
-                { withCredentials: true }
-            );
+            logAuth('Sending friend request', { userId });
+            const response = await api.post(`/user/friend-request/${userId}`, {});
             
             if (response.data.success) {
                 alert(response.data.message);

@@ -23,7 +23,7 @@ const P_grid = ({ posts }) => {
                                 className={styles.gridItemImg}
                                 onError={(e) => {
                                     e.target.onerror = null;
-                                    e.target.src = 'https://via.placeholder.com/300?text=Image+Not+Found';
+                                    e.target.src = 'https://img.icons8.com/?size=100&id=1cYVFPowIgtd&format=png&color=000000';
                                 }}
                             />
                         </Link>
