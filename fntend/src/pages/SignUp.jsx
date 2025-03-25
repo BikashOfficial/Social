@@ -1,7 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import gsap from "gsap";
-import axios from "axios";
+import api from "../services/api";
+import { logAuth } from "../utils/debug";
 import { UserDataContext } from "../context/UserContext";
 
 const SignUp = () => {
@@ -57,52 +58,6 @@ const SignUp = () => {
   const navigate = useNavigate();
   const { user, setUser } = useContext(UserDataContext);
 
-  // const submitHandler = async (e) => {
-  //   e.preventDefault();
-
-  //   const userData = {
-  //     name: name,
-  //     email: email,
-  //     password: password,
-  //     username: username,
-  //   };
-
-  //   const response = await axios.post(
-  //     `${import.meta.env.VITE_BASE_URL}/user/create`,
-  //     userData,
-  //     {
-  //       withCredentials: true, // This is important,
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       }
-  //     }
-  //   );
-
-  //   if (response.status === 201) {
-  //     const data = response.data;
-  //     setUser(data.user);
-  //     localStorage.setItem('token', data.token);
-  //     localStorage.setItem('user', JSON.stringify(data.user)); // Store user data
-  //     navigate("/");
-  //     // setUser(data.user);
-  //     // console.log(data.token);
-  //     // localStorage.setItem("token", data.token);
-  //     // navigate("/");
-  //   } else {
-  //     console.log("Failed to sign up");
-  //     // Replace with actual error handling logic
-  //   }
-
-  //   // console.log(user);
-
-  //   console.log("User signed up:", user); // Replace with actual signup logic
-
-  //   // Clear form inputs
-  //   setName("");
-  //   setEmail("");
-  //   setPassword("");
-  // };
-
   const submitHandler = async (e) => {
     e.preventDefault();
 
@@ -114,18 +69,14 @@ const SignUp = () => {
         username
       };
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/user/create`,
-        userData,
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+      logAuth('Attempting user registration', { email, username });
+      const response = await api.post(
+        '/user/create',
+        userData
       );
 
       if (response.status === 201) {
+        logAuth('Registration successful');
         const data = response.data;
         setUser(data.user);
         localStorage.setItem('token', data.token);
@@ -133,6 +84,7 @@ const SignUp = () => {
         navigate("/");
       }
     } catch (error) {
+      logAuth('Registration failed', { error: error.response?.data });
       console.error("Registration error:", error.response?.data?.error);
       alert(error.response?.data?.error || "Registration failed");
     }
@@ -218,13 +170,15 @@ const SignUp = () => {
                 setUsername(e.target.value);
                 if (e.target.value.length > 2) {
                   try {
-                    const response = await axios.get(
-                      `${import.meta.env.VITE_BASE_URL}/user/check-username/${e.target.value}`
+                    logAuth('Checking username availability', { username: e.target.value });
+                    const response = await api.get(
+                      `/user/check-username/${e.target.value}`
                     );
-                    if (response.data.exists) {
+                    if (!response.data.available) {
                       alert('Username already exists! Please choose another.');
                     }
                   } catch (error) {
+                    logAuth('Error checking username', { error: error.message });
                     console.error('Error checking username:', error);
                   }
                 }

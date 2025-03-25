@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react'
 import { UserDataContext } from '../../context/UserContext';
-import axios from 'axios';
+import api from '../../services/api';
+import { logAuth } from '../../utils/debug';
 
 const P_edit = ({ isOpen, setIsOpen }) => {
 
@@ -51,11 +52,12 @@ const P_edit = ({ isOpen, setIsOpen }) => {
                 formDataToSend.append('profilePhoto', selectedPhoto);
             }
 
-            const response = await axios.put(
-                `${import.meta.env.VITE_BASE_URL}/user/update-profile`,
+            logAuth('Updating user profile');
+            
+            const response = await api.put(
+                '/user/update-profile',
                 formDataToSend,
                 {
-                    withCredentials: true,
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -63,19 +65,19 @@ const P_edit = ({ isOpen, setIsOpen }) => {
             );
 
             if (response.data.user) {
+                logAuth('Successfully updated profile');
                 setUser(response.data.user);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 setIsOpen(false);
             }
         } catch (error) {
+            logAuth('Error updating profile', { error: error.response?.data });
             console.error('Error details:', error.response?.data);
             setError(error.response?.data?.error || 'Failed to update profile');
         } finally {
             setLoading(false);
         }
     };
-
-    console.log(user);
 
     return (
         <div>
@@ -142,25 +144,21 @@ const P_edit = ({ isOpen, setIsOpen }) => {
                                     type="text"
                                     name="username"
                                     value={formData.username}
-                                    // onChange={(e) => {
-                                    //     if (e.target.value.length <= 15) {
-                                    //         handleChange(e);
-                                    //     }
-                                    // }}
                                     onChange={async (e) => {
                                         if (e.target.value.length <= 15) {
                                             handleChange(e);
                                         }
-                                        setUsername(e.target.value);
                                         if (e.target.value.length > 2) {
                                             try {
-                                                const response = await axios.get(
-                                                    `${import.meta.env.VITE_BASE_URL}/user/check-username/${e.target.value}`
+                                                logAuth('Checking username availability', { username: e.target.value });
+                                                const response = await api.get(
+                                                    `/user/check-username/${e.target.value}`
                                                 );
-                                                if (response.data.exists) {
+                                                if (!response.data.available) {
                                                     alert('Username already exists! Please choose another.');
                                                 }
                                             } catch (error) {
+                                                logAuth('Error checking username', { error: error.message });
                                                 console.error('Error checking username:', error);
                                             }
                                         }
